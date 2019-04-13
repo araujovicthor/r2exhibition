@@ -59,4 +59,29 @@ function getTasks(companyName, listeningIdCompany){
     });
 }
 
-getTasks("Test Company", "TC008").then(tasks => console.log(tasks));
+function getBids(listeningId){
+    let filter = "#listeningId = :listeningId AND #statusBid <> :statusBid";
+    let values = {":listeningId": listeningId, ":statusBid": "Declined"};
+    let names = {"#listeningId":"listeningId", "#statusBid": "statusBid"};
+    
+    let params = {
+        TableName: process.env.bidTable,
+        FilterExpression: filter,
+        ExpressionAttributeNames: names,
+        ExpressionAttributeValues: values
+    };
+
+    return new Promise((resolve, reject) => {
+        connectionSP.scan(params, (err, data) => {
+            if(err) {
+                console.log('ERROR: ' + err)
+                reject(err)
+            } else {
+                resolve(Object.keys(data.Items).length);
+            }
+        })
+    });
+}
+
+getTasks("Test Company", "TC008").then(tasks => console.log("tasks: ",tasks));
+getBids("Pws64vzhNG").then(bids => console.log("bids: ",bids));
