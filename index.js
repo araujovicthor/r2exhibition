@@ -35,10 +35,10 @@ const getRE = () => new Promise(function(resolve, reject) {
     })
 })
 
-const getTasks = () => new Promise(function(resolve, reject) {
-    let filter = "#checkOut = :checkOut";
-    let values = {':checkOut': Boolean(true)};
-    let names = {"#checkOut": "checkOut"};
+function getTasks(companyName, listeningIdCompany){
+    let filter = "#companyName = :companyName AND #listeningIdCompany = :listeningIdCompany AND #checkOut = :checkOut";
+    let values = {":companyName": companyName, ":listeningIdCompany": listeningIdCompany, ":checkOut": Boolean(true)};
+    let names = {"#companyName":"company", "#listeningIdCompany":"companyCode", "#checkOut": "checkOut"};
     
     let params = {
         TableName: process.env.taskTable,
@@ -47,53 +47,16 @@ const getTasks = () => new Promise(function(resolve, reject) {
         ExpressionAttributeValues: values
     };
 
-    connectionUS.scan(params, (err, data) => {
-        if(err) {
-            console.log('ERROR: ' + err)
-            reject(err)
-        } else {
-            console.log(data.Items);
-            resolve(data);
-        }
-    })
-})
+    return new Promise((resolve, reject) => {
+        connectionUS.scan(params, (err, data) => {
+            if(err) {
+                console.log('ERROR: ' + err)
+                reject(err)
+            } else {
+                resolve(Object.keys(data.Items).length);
+            }
+        })
+    });
+}
 
-getRE();
-// getTasks();
-
-// console.log(getRE());
-// console.log(getTasks());
-
-// module.exports = {
-//     renewPrice: async function(){
-//         const data = await getData();
-
-//         data.Items.forEach((item) => {
-//             assurance = item.financial.rentValue * 0.08;
-//             rentalPrice = item.financial.rentValue + assurance;
-
-//             let params = {
-//                 TableName: process.env.listingTable,
-//                 Key:{
-//                     "listeningId": item.listeningId                
-//                 },
-//                 UpdateExpression: "set financial.assurance = :assurance, RentalPrice = :rentalPrice",
-//                 ExpressionAttributeValues:{
-//                     ":assurance": assurance,
-//                     ":rentalPrice": rentalPrice
-//                 }
-//             };
-    
-//             return new Promise((resolve, reject) => {
-//                 connection.update(params, function(err, data) {
-//                     if (err) {
-//                         reject(err);
-//                     } else {
-//                         resolve (200);
-//                     }
-//                 });
-//             });
-
-//         })
-//     }
-// }
+getTasks("Test Company", "TC008").then(tasks => console.log(tasks));
